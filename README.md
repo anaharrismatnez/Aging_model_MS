@@ -29,7 +29,7 @@ dataset/
         ...
   ```
 
-- Where {t}_MRI_001 corresponds to each time point of patient 001, being t=1 the baseline scan. As the training will be per pairs it is necessary at t > 1 to specify the follow-up scan by writing "r_" before the patient's name, meaning registered image.
+- Where t_MRI_001 corresponds to each time point of patient 001, being t=1 the baseline scan. As the training will be per pairs it is necessary at t > 1 to specify the follow-up scan by writing "r_" before the patient's name, meaning registered image.
 - Info.json contains all information about patient scan:
   - info['shape'] = [x,y,z]
   - info['delta'] = delta value between follow-up and baseline image
