@@ -13,7 +13,7 @@ PONER UN GIF???
   ```
   git clone https://github.com/bryanlimy/clinical-super-mri.git
   ```
-- It is highly recommended to create a new environment for each of the models to be used. The required packages can be found in the file `requirements.txt`
+- It is highly recommended to create a new environment for each of the models to be used. The required packages can be found in the file `requirements.txt`. For the SR network see how to create the environment in [clinical-super-mri](https://github.com/bryanlimy/clinical-super-mri/tree/main).
 
 
 ### Dataset

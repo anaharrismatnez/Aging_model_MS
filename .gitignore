@@ -4,6 +4,6 @@ wandb/
 *.log
 *.json
 
-.clinical-super-mri/
-./cGAN/results/
-./cLDM/results/
+clinical-super-mri/
+/cGAN/results/
+/cLDM/results/
