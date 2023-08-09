@@ -1,12 +1,20 @@
 # Generative Aging models for MS brain atrophy quantification.
 
-Code for the Master Thesis: <span style="color: blue"> "Generation of synthetic longitudinal magnetic resonance images of subjects with multiple sclerosis: Assessment of brain atrophy and their clinical impact" </span>
-
+Code for the Master Thesis: "Generation of synthetic longitudinal magnetic resonance images of subjects with multiple sclerosis: Assessment of brain atrophy and their clinical impact".
+AÑADIR + DESCRIPCION
 PONER UN GIF???
 
 ### Installation 
-añadir lo del supermri
-requirements
+- Clone this repository:
+  ```
+  git clone https://github.com/anaharrismatnez/Aging_model_MS.git
+  ```
+- The [clinical-super-mri](https://github.com/bryanlimy/clinical-super-mri/tree/main) repository was used to train the Super Resolution (SR) Network. If you want the repository with all submodules, clone it with the following command:
+  ```
+  git clone https://github.com/bryanlimy/clinical-super-mri.git
+  ```
+- It is highly recommended to create a new environment for each of the models to be used. The required packages can be found in the file `requirements.txt`
+
 
 ### Dataset
 
@@ -45,19 +53,17 @@ dataset/
   ```
   ```
   python utils/npy_2_nii.py --source data_npy --data_path dataset 
-
   optional arguments:
-
   --SR
         True if .npy files are obtained from SR network output
 
   ```
-  
-  `npy_2_nii.py` automatically saves the niftis files at folder: data_npy_niftis. Command --SR specifies if the .npy images are generated from the clinical-super-mri (Super Resolution Network).
-
+  `npy_2_nii.py` automatically saves the niftis files at folder: data_npy_niftis. 
 ### Models 
 - enlaces de cada modelo y allí especificar readme con comands
   
-### MONITORING 
-decir wandb
+### Monitoring and Visualization 
+-cGAN and cLDM monitor training through wandb via anonymus mode. 
+- `clinical-super-mri` repository monitors the training via Tensorboard (check clinical-super-mri).
+
 
