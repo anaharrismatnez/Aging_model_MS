@@ -44,10 +44,16 @@ dataset/
   python utils/nii_2_npy.py --source dataset --output_dir data_npy
   ```
   ```
-  python utils/npy_2_nii.py --source data_npy --data_path dataset --SR True
-  ```
+  python utils/npy_2_nii.py --source data_npy --data_path dataset 
 
-  python utils/npy_2_nii.py automatically saves the niftis files at folder: data_npy_niftis. Command --SR specifies if the .npy images are generated from the clinical-super-mri (Super Resolution Network).
+  optional arguments:
+
+  --SR
+        True if .npy files are obtained from SR network output
+
+  ```
+  
+  `npy_2_nii.py` automatically saves the niftis files at folder: data_npy_niftis. Command --SR specifies if the .npy images are generated from the clinical-super-mri (Super Resolution Network).
 
 ### Models 
 - enlaces de cada modelo y allí especificar readme con comands
