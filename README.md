@@ -63,7 +63,7 @@ dataset/
 - enlaces de cada modelo y allí especificar readme con comands
   
 ### Monitoring and Visualization 
--cGAN and cLDM monitor training through wandb via anonymus mode. 
+- cGAN and cLDM monitor training through wandb via anonymus mode. 
 - `clinical-super-mri` repository monitors the training via Tensorboard (check clinical-super-mri).
 
 
