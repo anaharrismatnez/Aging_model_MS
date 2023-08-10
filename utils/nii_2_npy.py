@@ -1,6 +1,10 @@
-import numpy as np
 import os
-from utils_image import *
+import sys
+main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, main_folder)
+
+import numpy as np
+from utils.utils_image import *
 import shutil
 import argparse
 

@@ -21,7 +21,6 @@ from time import process_time
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
 def main(args,epochs_check):
     t_start = process_time()
 
@@ -74,15 +73,15 @@ if __name__ == "__main__":
     parser.add_argument('-B',default=8, type=int,  help='Batch size')
     parser.add_argument('-e',default=100, type=int, help='Number of epochs')
     parser.add_argument('-w', required=False, type=bool, help= 'True if wandb initilization is required')
-    parser.add_argument('-l',default=100, required=True, type=int, help='Lambda, L1 regularization')
-    parser.add_argument('-p',default=34, required=True, type=int, help='Patch size of the discriminator')
+    parser.add_argument('-l',default=100, type=int, help='Lambda, L1 regularization')
+    parser.add_argument('-p',default=34, type=int, help='Patch size of the discriminator')
     parser.add_argument('-s',required=False,default=None, type=bool, help='If smooth_label is required')
     parser.add_argument('-pad',required=False,default=1, type=int, help='Padding at Discriminator')
-    parser.add_argument('-g',required=True,default=200, type=int, help='Gamma, rmse loss')
-    parser.add_argument('-mu_fm_loss',required=True,default=20, type=int, help='Mu,feature matching loss')
-    parser.add_argument('-lr',required=True,default=2e-4, type=int, help='learning_rate')
-    parser.add_argument('-vd',required=True,default=0.001, type=int, help='upsilon discriminator, L2 regularization')
-    parser.add_argument('-vg',required=True,default=0.001, type=int, help='upsilon generator, L2 regularization')
+    parser.add_argument('-g',default=200, type=int, help='Gamma, rmse loss')
+    parser.add_argument('-mu_fm_loss',default=20, type=int, help='Mu,feature matching loss')
+    parser.add_argument('-lr',default=2e-4, type=int, help='learning_rate')
+    parser.add_argument('-vd',default=0.001, type=int, help='upsilon discriminator, L2 regularization')
+    parser.add_argument('-vg',default=0.001, type=int, help='upsilon generator, L2 regularization')
     
     args = parser.parse_args()
 

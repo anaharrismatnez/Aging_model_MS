@@ -1,4 +1,10 @@
 
+
+import os
+import sys
+main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, main_folder)
+
 import torch
 import math
 import typing as t
@@ -6,27 +12,9 @@ from pathlib import Path
 import wandb
 from datetime import date
 import copy
-from utils_image import *
+from utils.utils_image import *
 import json
 import numpy as np
-import os
-
-def reset_weights(m):
-  '''
-    Try resetting model weights to avoid
-    weight leakage.
-  '''
-  for layer in m.children():
-   if hasattr(layer, 'reset_parameters'):
-    layer.reset_parameters()
-
-
-
-def init_weights(m):
-    classname = m.__class__.__name__
-    if hasattr(m, 'weight') and (classname.find('Conv') != -1 or classname.find('Linear') != -1):
-        torch.nn.init.normal_(m.weight.data, 0.0, 0.02)
-
 
 
 def dim_out_layer(patch_size,p=1,img_size=128,k=4,s=2):

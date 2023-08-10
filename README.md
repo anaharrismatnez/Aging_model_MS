@@ -60,7 +60,7 @@ dataset/
   ```
   `npy_2_nii.py` automatically saves the niftis files at folder: data_npy_niftis. 
 ### Models 
-- [cGAN + SR](https://github.com/anaharrismatnez/Aging_model_MS/tree/main/cGAN) The training and inference pipelines can be found in the files: `training_cGAN_SR.sh` and `inference_cGAN_SR.sh` 
+- [cGAN](https://github.com/anaharrismatnez/Aging_model_MS/tree/main/cGAN) + SR. Training and inference pipelines: `training_cGAN_SR.sh` and `inference_cGAN_SR.sh` 
 - 
   
 ### Monitoring and Visualization 

@@ -2,7 +2,11 @@
 # File to prepare data for training Super Resolution (SR) Network, as required in: https://github.com/bryanlimy/clinical-super-mri/tree/main
 
 import os
-from util import move_HR_files,move_LR_files
+import sys
+main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, main_folder)
+
+from utils.util import move_HR_files,move_LR_files
 import argparse
 
 
