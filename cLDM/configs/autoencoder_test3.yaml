@@ -1,0 +1,32 @@
+stage1:
+  base_lr: 0.000005 
+  disc_lr: 0.0005
+  perceptual_weight: 0.002
+  adv_weight: 0.005
+  kl_weight: 1e-6
+  params:
+    spatial_dims: 3
+    in_channels: 1
+    out_channels: 1
+    num_channels: [32,64,64]
+    latent_channels: 3 
+    num_res_blocks: 2
+    attention_levels: [False,False,False]
+    with_encoder_nonlocal_attn: False
+    with_decoder_nonlocal_attn: False
+    
+
+discriminator:
+  params:
+    spatial_dims: 3
+    num_channels: 32
+    num_layers_d: 3
+    in_channels: 1
+    out_channels: 1
+    padding: 1
+
+perceptual_network:
+  params:
+    spatial_dims: 3
+    network_type: "squeeze"
+    fake_3d_ratio: 0.25

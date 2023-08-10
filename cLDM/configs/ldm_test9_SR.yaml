@@ -1,0 +1,20 @@
+ldm:
+  base_lr: 5e-5 
+  params:
+    spatial_dims: 3
+    in_channels: 6
+    out_channels: 3
+    num_res_blocks: 2 
+    num_channels: [128, 256, 256]
+    attention_levels: [False, True, True]
+    num_head_channels: [0, 256, 256]
+    transformer_num_layers: 0
+    upcast_attention: True 
+    with_conditioning: False
+
+  scheduler:
+    schedule: "linear_beta"
+    num_train_timesteps: 1000
+    beta_start: 0.0015
+    beta_end: 0.0195
+    prediction_type: "v_prediction"

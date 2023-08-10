@@ -1,5 +1,5 @@
 - cGAN + SR pipelines are provided in `training_cGAN_SR.sh` and `inference_cGAN_SR.sh`.
-- The training of cGAN can be performed with the following command:
+- The training of cGAN is performed with the following command:
   ```
   python cGAN/main.py -h 
   usage: main.py [-h] -d D [-n N] [-B B] [-e E] [-w W] [-l L] [-p P] [-s S] [-pad PAD] [-g G] [-mu_fm_loss MU_FM_LOSS] [-lr LR] [-vd VD] [-vg VG]
@@ -22,7 +22,7 @@
     -vd VD                upsilon discriminator, L2 regularization
     -vg VG                upsilon generator, L2 regularization
     ```
-- Inference of cGAN can be performed with the following command:
+- Inference of cGAN is performed with the following command:
   ```
   python cGAN/inference.py -h
   usage: inference.py [-h] -m MODEL -e EPOCH [-o OUT_NAME] -d D
