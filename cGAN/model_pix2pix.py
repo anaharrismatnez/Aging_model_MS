@@ -20,7 +20,7 @@ def convolution_block(in_channels, nf,kernel_size=4,stride=2,padding=1,first_lay
 
 
 class FiLMed_Generator(torch.nn.Module):
-    def __init__(self,in_c=1,out_c=1,nf=64,aux_classes=4): 
+    def __init__(self,in_c=1,out_c=1,nf=64,aux_classes=1): 
         super(FiLMed_Generator,self).__init__()
         """ 
         metadata: auxiliary input (delta)
@@ -102,7 +102,7 @@ class Filmed_SkipConnection_block(torch.nn.Module):
 
 
 class Discriminator(torch.nn.Module):
-    def __init__(self,in_c, nf,p,patch_size=34): 
+    def __init__(self,p,patch_size,in_c=2,nf=64): 
         super(Discriminator,self).__init__()
         """ 
         in_c: number of channels in input images

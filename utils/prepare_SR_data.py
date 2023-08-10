@@ -1,8 +1,6 @@
 # Ana Harris 06/04/2023
 # File to prepare data for training Super Resolution (SR) Network, as required in: https://github.com/bryanlimy/clinical-super-mri/tree/main
 
-
-
 import os
 from util import move_HR_files,move_LR_files
 import argparse
