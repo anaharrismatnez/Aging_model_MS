@@ -1,32 +1,26 @@
+# Code based on: # https://github.com/Warvito/generative_chestxray/blob/main/src/python/training/train_ldm.py
+
 import argparse
 import sys
-import torch
-import torch.nn as nn
+import os
+main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, main_folder)
+
 import torch.optim as optim
 from omegaconf import OmegaConf
 from datetime import date
 import wandb
-import os
 import pickle 
 from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utils.dataset import *
+from dataset import *
 from utils.util import * 
-#sys.path.append('~Ana/code/brain_ldm/GenerativeModels/')
 
-from GenerativeModels.generative.networks.nets import DiffusionModelUNet
-from GenerativeModels.generative.networks.schedulers import DDPMScheduler
+from generative.networks.nets import DiffusionModelUNet
+from generative.networks.schedulers import DDPMScheduler
 from monai.utils import first,set_determinism
-from GenerativeModels.generative.networks.nets import AutoencoderKL
-
-
-# https://github.com/Warvito/generative_chestxray/blob/main/src/python/training/train_ldm.py
-
-# https://github.com/Project-MONAI/GenerativeModels/blob/main/model-zoo/models/brain_image_synthesis_latent_diffusion_model/configs/inference.json
-
-# https://github.com/Project-MONAI/GenerativeModels/blob/main/tutorials/generative/2d_super_resolution/2d_stable_diffusion_v2_super_resolution.ipynb
-
+from generative.networks.nets import AutoencoderKL
 
 
 def load_AE(args,device,image):
@@ -48,15 +42,15 @@ def paths(args):
 
 
     if args.n:
-        models_path = f'results/{args.n}/ldm/checkpoints/'
+        models_path = f'results/{args.n}/cLDM/checkpoints/'
     else:
-        models_path = f'results/run_{today}/ldm/checkpoints/'
+        models_path = f'results/run_{today}/cLDM/checkpoints/'
     
     if args.w:
         if args.n:
-            wandb.init(project='ldm',config=args, entity="anaharris", name=f'{today}_{args.n}')
+            wandb.init(project='cLDM',config=args, anonymous="allow", name=f'{today}_{args.n}')
         else:
-            wandb.init(project='ldm',config=args, entity="anaharris", name=f'{today}')
+            wandb.init(project='cLDM',config=args, anonymous="allow", name=f'{today}')
 
     return models_path
 
@@ -121,10 +115,8 @@ def main(args,device):
                 delta = delta.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1) 
                 delta = delta.repeat(1, 1, e_b.shape[2], e_b.shape[3], e_b.shape[4])
 
-
                 e_c = torch.cat([e_b,delta], dim=1) 
 
-            
                 noise = torch.randn_like(e).to(device)
                 noisy_e =  scheduler.add_noise(original_samples=e,noise=noise,timesteps=timesteps)
 
@@ -152,11 +144,11 @@ def main(args,device):
                 "total_loss": (run_loss.item())/len(train_loader),
             })
 
-            if (ep + 1) % 10 == 0:
-                fig = get_figure_ldm(e.shape,e_c,autoencoder,diffusion,scheduler,device,scale_factor)
-                plots = wandb.Image(fig)
-                plt.close(fig)
-                wandb.log({f"epoch {(ep+1)}": plots}) 
+            #if (ep + 1) % 10 == 0:
+            fig = get_figure_ldm(e.shape,e_c,autoencoder,diffusion,scheduler,device,scale_factor)
+            plots = wandb.Image(fig)
+            plt.close(fig)
+            wandb.log({f"epoch {(ep+1)}": plots}) 
 
 
         # SAVE BEST MODEL
@@ -210,16 +202,16 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d',default='/home/extop/Ana/Datasets/Niftis_sans_Workspaces_biogen/numpys.pkl', type=str,help='Data path')
+    parser.add_argument('-ddata_path',required=True, type=str,help='Data path')
     parser.add_argument('-n',required=False, type=str,help='Experiment name')
     parser.add_argument('-B',default=1, type=int,  help='Batch size')
     parser.add_argument('-e',default=25, type=int, help='Number of epochs')
-    parser.add_argument('-e0',default='best_model', type=str, help='e0')
+    parser.add_argument('-e0',required=False, type=str, help='Epoch to load model')
     parser.add_argument('-w', required=False, type=bool, help= 'True if wandb initilization is required')
 
-    parser.add_argument('-config',default='configs/ldm.yaml', type=str, help= 'Config file')
-    parser.add_argument('-AE',default='results/test9_agm/autoencoder/checkpoints/best_model.pth', type=str, help= 'Path to autoencoder model.')
-    parser.add_argument('-AE_config',default='configs/autoencoder_test9.yaml', type=str, help= 'Path to autoencoder model.')
+    parser.add_argument('-config',required=True, type=str, help= 'Config file')
+    parser.add_argument('-AE_model',required=True, type=str, help= 'Path to autoencoder model.')
+    parser.add_argument('-AE_config',required=True, type=str, help= 'Path to autoencoder model.')
 
     args = parser.parse_args()
 

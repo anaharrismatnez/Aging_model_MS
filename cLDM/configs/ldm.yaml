@@ -1,15 +1,15 @@
 ldm:
-  base_lr: 0.000025 
+  base_lr: 0.00005 
   params:
     spatial_dims: 3
     in_channels: 7
     out_channels: 3
-    num_res_blocks: 2 
-    num_channels: [32, 64, 64]
-    attention_levels: [False, True, True]
-    num_head_channels: [0, 64, 64]
+    num_res_blocks: 1 
+    num_channels: [64, 64, 64]
+    attention_levels: [False, False, True]
+    num_head_channels: 64
     transformer_num_layers: 0
-    upcast_attention: True 
+    upcast_attention: False 
     with_conditioning: False
 
   scheduler:

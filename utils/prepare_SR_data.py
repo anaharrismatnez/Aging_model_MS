@@ -13,11 +13,11 @@ import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_dir',required=True,type=str,help='Results obtained from cGAN pipeline.Folder with LR images to use.')
-    parser.add_argument('--out_dir',required=True,type=str,help='Folder to save LR and HR (if needed).')
-    parser.add_argument('--data_path',required=False,default='/home/extop/Ana/Datasets/Niftis_sans_Workspaces_biogen/Numpys/',type=str,help='Dataset path.')
-    parser.add_argument('--HR',required=False,type=bool,help='If we want to move HR images (necessary for training SR).')
-    parser.add_argument('--basals',required=False,type=bool,help='If we want to move baseline images (train only with basals).')
+    parser.add_argument('-input_dir',required=True,type=str,help='Results obtained from cGAN pipeline.Folder with LR images to use.')
+    parser.add_argument('-out_dir',required=True,type=str,help='Folder to save LR and HR (if needed).')
+    parser.add_argument('-data_path',required=True,type=str,help='Dataset path.')
+    parser.add_argument('-HR',required=False,type=bool,help='If we want to move HR images (necessary for training SR).')
+    parser.add_argument('-basals',required=False,type=bool,help='If we want to move baseline images (train only with basals).')
 
     args = parser.parse_args()
 

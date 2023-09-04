@@ -6,7 +6,7 @@
 
   optional arguments:
     -h, --help            show this help message and exit
-    -d D                  input folder
+    -data_path DATA_PATH                  input folder
     -n N                  Experiment name
     -B B                  Batch size
     -e E                  Number of epochs
@@ -35,6 +35,6 @@
                           Epoch to load model. Default=best_model
     -o OUT_NAME, --out_name OUT_NAME
                           Output folder name. Default=imgs_best_model
-    -d D                  Dataset path
+    -data_path DATA_PATH  Dataset path
 
   ```

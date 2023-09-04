@@ -38,8 +38,8 @@ def nii2npy(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source',required=True, type=str,help='Dataset folder (grouped by patient folders)')
-    parser.add_argument('--output_dir',required=True,type=str,help='Folder to save .npy files')
+    parser.add_argument('-source',required=True, type=str,help='Dataset folder (grouped by patient folders)')
+    parser.add_argument('-output_dir',required=True,type=str,help='Folder to save .npy files')
 
     args = parser.parse_args()
 

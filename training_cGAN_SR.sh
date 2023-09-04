@@ -7,7 +7,7 @@ eval "$(conda shell.bash hook)"
 dataset=path_2_HC_dataset
 model=best_model_cGAN
 
-conda activate cGAN
+conda activate base
 
 python cGAN/main.py -d $dataset -e 150 -w True -n $model
 python cGAN/inference.py -d $dataset -m $model -e best_model -o LR_HC

@@ -1,11 +1,14 @@
+
+# Code based on: # https://github.com/Warvito/generative_chestxray/blob/main/src/python/training/train_aekl.py
+
 import argparse
 import os
 from omegaconf import OmegaConf
 import torch
 import torch.optim as optim
 import sys
-
-sys.path.append('~Ana/code/brain_ldm/GenerativeModels/')
+main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, main_folder)
 
 from generative.losses.perceptual import PerceptualLoss
 from generative.networks.nets import AutoencoderKL
@@ -16,12 +19,10 @@ import wandb
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from torch.cuda.amp import GradScaler, autocast
-from utils.dataset import *
+from dataset import *
 from utils.util import * 
 import pickle
 
-
-# https://github.com/Warvito/generative_chestxray/blob/main/src/python/training/train_aekl.py
 
 torch.cuda.empty_cache()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -38,9 +39,9 @@ def paths(args):
     
     if args.w:
         if args.n:
-            wandb.init(project='autoencoder',config=args, entity="anaharris", name=f'{today}_{args.n}')
+            wandb.init(project='autoencoder',config=args, anonymous="allow", name=f'{today}_{args.n}')
         else:
-            wandb.init(project='autoencoder',config=args, entity="anaharris", name=f'{today}')
+            wandb.init(project='autoencoder',config=args, anonymous="allow", name=f'{today}')
 
     return models_path
 
@@ -215,12 +216,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d',default='/home/extop/Ana/Datasets/Niftis_sans_Workspaces_biogen/numpys_AE.pkl', type=str,help='Data path')
+    parser.add_argument('-data_path',required=True, type=str,help='Data path')
     parser.add_argument('-n',required=False, type=str,help='Experiment name')
     parser.add_argument('-B',default=1, type=int,  help='Batch size')
     parser.add_argument('-e',default=50, type=int, help='Number of epochs')
     parser.add_argument('-w', required=False, type=bool, help= 'True if wandb initilization is required')
-    parser.add_argument('-config',default='configs/autoencoder_test9.yaml', type=str, help= 'Config file')
+    parser.add_argument('-config',required=True, type=str, help= 'Config file')
     parser.add_argument('-agm',default=True, type=bool, help= 'If data augmentation is required')
 
     args = parser.parse_args()

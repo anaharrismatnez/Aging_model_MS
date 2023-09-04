@@ -8,10 +8,13 @@
 import os
 import json
 from torch.utils.data import Dataset
-#from utils_image import *
-from utils.utils_image import *
 import numpy as np
 import monai
+
+import sys
+main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+from utils.utils_image import *
 
 
 def threshold_at_one(x):
@@ -36,14 +39,6 @@ augmentation_T = transforms.Compose([
 rest_T = transforms.Compose([
     monai.transforms.AddChannel(),
     monai.transforms.CropForeground(select_fn=threshold_at_one, margin=0),
-    monai.transforms.Resize((128,128,128)),
-    monai.transforms.ScaleIntensity(minv=0.0, maxv=1.0),
-    monai.transforms.ToTensor()
-])
-
-rest_SR = transforms.Compose([
-    monai.transforms.AddChannel(),
-    monai.transforms.CropForeground(select_fn=threshold_at_zero, margin=0),
     monai.transforms.Resize((128,128,128)),
     monai.transforms.ScaleIntensity(minv=0.0, maxv=1.0),
     monai.transforms.ToTensor()
@@ -81,24 +76,28 @@ def get_data(
     for folder in os.listdir(path):
         name = folder.split('_')[1]+'_'+folder.split('_')[2]
         delta = json.load(open(os.path.join(path,folder,'info.json'),'r'))['delta']
-        if folder.startswith('1_'):
-            data_dicts.append(
-                {
-                    "fup": f"{path}/{folder}/{name}.npy",
-                    "basal": f"{path}/{folder}/{name}.npy",
-                    "delta": delta
-                }
-            )
-        else:
-            data_dicts.append(
-                {
-                    "fup": f"{path}/{folder}/r_{name}.npy",
-                    "basal": f"{path}/{folder}/{name}.npy",
-                    "delta": delta
-                }
-            )
+        shape = json.load(open(os.path.join(path,folder,'info.json'),'r'))['shape']
+        if delta != 0:
+            if folder.startswith('1_'):
+                data_dicts.append(
+                    {
+                        "fup": f"{path}/{folder}/{name}.npy",
+                        "basal": f"{path}/{folder}/{name}.npy",
+                        "delta": delta,
+                        "shape" : shape
+                    }
+                )
+            else:
+                data_dicts.append(
+                    {
+                        "fup": f"{path}/{folder}/r_{name}.npy",
+                        "basal": f"{path}/{folder}/{name}.npy",
+                        "delta": delta,
+                        "shape" : shape
+                    }
+                )
 
-        break
+        
     print(f"Found {len(data_dicts)} subjects.")
     return data_dicts
 
@@ -122,17 +121,6 @@ class train_dataset(Dataset):
                 scan = rest_T(scan)
                 
             return scan
-
-        elif self.model == 'SR':
-            LR = np.load(self.data[index]['LR'])
-            HR = np.load(self.data[index]['HR'])
-            LR[HR == 0] = 0
-
-            HR = self.transform(HR)
-            LR = self.transform(LR)
-
-            return HR,LR
-
 
         else:
             fup = np.load(self.data[index]['fup'])
@@ -162,8 +150,9 @@ class test_dataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
-
         basal = np.load(self.data[index]['basal'])
+        filename = self.data[index]['basal'].split('/')[-2]
+        shape = self.data[index]['shape']
 
         if self.transform:
             basal = self.transform(basal)
@@ -173,7 +162,7 @@ class test_dataset(Dataset):
 
         delta = torch.tensor(float(self.data[index]['delta']))
 
-        return basal,delta
+        return basal,delta,filename,shape
 
 
 

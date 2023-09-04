@@ -18,7 +18,7 @@ def npy2nii():
             new_name = filename.replace('.npy','.nii.gz')
             img = np.load(os.path.join(args.source,filename))
 
-            if not args.SR:
+            if args.resize:
                 img = np.moveaxis(img,0,2)
                 img = resize(img,shape)
 
@@ -28,15 +28,15 @@ def npy2nii():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source',required=True, type=str,help='Folder with .npy files (all files in 1 folder, result from inference)')
-    parser.add_argument('--data_path',required=True,type=str,help='Dataset path')
-    parser.add_argument('--SR',default=None,type=str,help='True if .npy files are obtained from SR network output')
+    parser.add_argument('-source',required=True, type=str,help='Folder with .npy files (all files in 1 folder, result from inference)')
+    parser.add_argument('-data_path',required=True,type=str,help='Dataset path')
+    parser.add_argument('-resize',default=None,type=str,help='True if .npy files are obtained from cGAN network output')
 
     args = parser.parse_args()
     
     fold = args.source.split('/')[-2]
 
-    out_dir = args.source.replace(fold,f'{fold}_niftis') # Saves niftis at "source"_niftis
+    out_dir = args.source.replace(fold,f'{fold}_niftis')
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 

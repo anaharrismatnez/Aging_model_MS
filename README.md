@@ -13,7 +13,7 @@ PONER UN GIF???
   ```
   git clone https://github.com/bryanlimy/clinical-super-mri.git
   ```
-- It is highly recommended to create a new environment for each of the models to be used. The required packages can be found in the file `requirements.txt`. For the SR network see how to create the environment in [clinical-super-mri](https://github.com/bryanlimy/clinical-super-mri/tree/main).
+- It is highly recommended to create a new environment. The required packages can be found in the file `requirements.txt`. For the SR network see how to create the environment in [clinical-super-mri](https://github.com/bryanlimy/clinical-super-mri/tree/main).
 
 
 ### Dataset
@@ -49,19 +49,19 @@ dataset/
 
 * To convert .nii files into .npy, or viceversa use the following commands:
   ```
-  python utils/nii_2_npy.py --source dataset --output_dir data_npy
+  python utils/nii_2_npy.py -source dataset -output_dir data_npy
   ```
   ```
-  python utils/npy_2_nii.py --source data_npy --data_path dataset 
+  python utils/npy_2_nii.py -source data_npy -data_path dataset 
   optional arguments:
-  --SR
-        True if .npy files are obtained from SR network output
+  -resize
+        True if .npy files are obtained from cGAN network output.
 
   ```
   `npy_2_nii.py` automatically saves the niftis files at folder: data_npy_niftis. 
 ### Models 
 - [cGAN](https://github.com/anaharrismatnez/Aging_model_MS/tree/main/cGAN) + SR. Training and inference pipelines: `training_cGAN_SR.sh` and `inference_cGAN_SR.sh` 
-- 
+- [cLDM](https://github.com/anaharrismatnez/Aging_model_MS/tree/main/cLDM). Training pipeline: `training_cLDM.sh`.
   
 ### Monitoring and Visualization 
 - cGAN and cLDM monitor training through wandb via anonymus mode. 

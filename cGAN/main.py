@@ -68,7 +68,7 @@ def main(args,epochs_check):
 if __name__ == "__main__":
     torch.cuda.empty_cache()
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d',required=True, type=str,help='input folder')
+    parser.add_argument('-data_path',required=True, type=str,help='input folder')
     parser.add_argument('-n',required=False, type=str,help='Experiment name')
     parser.add_argument('-B',default=8, type=int,  help='Batch size')
     parser.add_argument('-e',default=100, type=int, help='Number of epochs')

@@ -40,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument('-m','--model',required=True, type=str,help='Model experiment')
     parser.add_argument('-e','--epoch',required=True, default='best_model', type=str,help='Epoch to load model. Default=best_model')
     parser.add_argument('-o','--out_name',default='imgs_best_model', type=str,help='Output folder name. Default=imgs_best_model')
-    parser.add_argument('-d',required=True, type=str,help='Dataset path')
+    parser.add_argument('-data_path',required=True, type=str,help='Dataset path')
 
     t_start = process_time() 
 
