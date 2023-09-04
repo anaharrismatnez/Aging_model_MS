@@ -143,7 +143,7 @@ def compute_ssim(img1,img2,mask,map=None):
       return luminosity_score,contrast_score,structural_score
 
 
-def maps(diff,indexes=[150,90,90],method='diff'):
+def maps(diff,indexes=[150,90,90],method='dssim'):
   figure, axes = plt.subplots(
       nrows=1,
       ncols=4,
@@ -156,9 +156,7 @@ def maps(diff,indexes=[150,90,90],method='diff'):
       dpi=120,
   )
 
-  vmin = 0
   vmax = 1
-  #vmax = diff.max()
   vcenter = vmax/2
   norm = colors.TwoSlopeNorm(vmin=0,vcenter=vcenter, vmax=vmax)
   color = 'jet'
