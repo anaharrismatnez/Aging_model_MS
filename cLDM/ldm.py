@@ -144,11 +144,11 @@ def main(args,device):
                 "total_loss": (run_loss.item())/len(train_loader),
             })
 
-            #if (ep + 1) % 10 == 0:
-            fig = get_figure_ldm(e.shape,e_c,autoencoder,diffusion,scheduler,device,scale_factor)
-            plots = wandb.Image(fig)
-            plt.close(fig)
-            wandb.log({f"epoch {(ep+1)}": plots}) 
+            if (ep + 1) % 10 == 0:
+                fig = get_figure_ldm(e.shape,e_c,autoencoder,diffusion,scheduler,device,scale_factor)
+                plots = wandb.Image(fig)
+                plt.close(fig)
+                wandb.log({f"epoch {(ep+1)}": plots}) 
 
 
         # SAVE BEST MODEL
@@ -167,9 +167,6 @@ def main(args,device):
         else:
             counter += 1
 
-        """ if counter >= 10:
-            print('The model doesnt improve')
-            break """
 
         if (ep + 1) % 50 == 0:
             checkpoint = {
