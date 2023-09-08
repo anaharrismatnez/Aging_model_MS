@@ -46,9 +46,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    abs_path = os.path.dirname(os.path.abspath(__file__))
-
-    model_path = abs_path+'/results/'+args.model+'/training_cGAN'
+    model_path = main_folder+'/results/'+args.model+'/training_cGAN'
 
 
     results_path = model_path+'/'+args.out_name
@@ -60,7 +58,7 @@ if __name__ == "__main__":
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    data = get_data(args.d)
+    data = get_data(args.data_path)
     test_dataset = dataset(data,mode='test') 
     dataloader = DataLoader(test_dataset, shuffle=True)
 

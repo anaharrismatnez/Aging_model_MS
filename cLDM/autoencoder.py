@@ -66,7 +66,6 @@ def main(args):
         os.makedirs(models_path)
     else:
         checkpoint = torch.load(f'{models_path}/best_model.pth') 
-        #checkpoint = torch.load(f'/home/extop/Ana/code/brain_ldm/models/autoencoder.pth')
         model.load_state_dict(checkpoint['model'])
         D.load_state_dict(checkpoint["discriminator"])
         G_optimizer.load_state_dict(checkpoint["G_optimizer"])
@@ -76,10 +75,10 @@ def main(args):
         print('Model loaded from checkpoint at epoch:',start_epoch)    
 
     # GET DATASET
-    if args.d.endswith('.pkl'):
-        data = pickle.load(open(args.d,'rb'))
+    if args.data_path.endswith('.pkl'):
+        data = pickle.load(open(args.data_path,'rb'))
     else:
-        data = get_data(args.d)
+        data = get_data_AE(args.data_path)
 
     if args.agm:
         train_data = train_dataset(data,'autoencoder',augmentation_T)
@@ -193,6 +192,9 @@ def main(args):
                 }
                 torch.save(checkpoint, f'{models_path}/best_model.pth') 
 
+                if args.w:
+                    wandb.save(f'{models_path}/best_model.pth')
+
                 print('Checkpoint saved!')
                 counter = 0
         else:
@@ -212,6 +214,8 @@ def main(args):
                 "loss":(L1_loss.item())/len(train_loader),
             }
     torch.save(checkpoint, f'{models_path}/final_model.pth')
+    if args.w:
+        wandb.save(f'{models_path}/final_model.pth')
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ def main(args,epochs_check):
     if device == 'cpu':
         raise ValueError ('CUDA not available')
 
-    data = get_data(args.d)
+    data = get_data(args.data_path)
     G = FiLMed_Generator().to(device)
     train_data = dataset(data,mode='training')
 

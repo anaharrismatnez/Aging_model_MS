@@ -34,7 +34,7 @@ def data_transformation(image,img_size,range=(-1,1)):
 
 def data_transformation_numpy(image,img_size,range=(-1,1)):
     if img_size:
-        image = resize(image,(img_size, img_size, img_size))
+        image = resize(image,(img_size))
     if range:
         image = img_normalization(image,range)
     

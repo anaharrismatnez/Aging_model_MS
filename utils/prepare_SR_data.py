@@ -17,15 +17,15 @@ if __name__ == "__main__":
     parser.add_argument('-out_dir',required=True,type=str,help='Folder to save LR and HR (if needed).')
     parser.add_argument('-data_path',required=True,type=str,help='Dataset path.')
     parser.add_argument('-HR',required=False,type=bool,help='If we want to move HR images (necessary for training SR).')
-    parser.add_argument('-basals',required=False,type=bool,help='If we want to move baseline images (train only with basals).')
+    parser.add_argument('-basals',default=False,type=bool,help='If we want to move baseline images (train only with basals).')
 
     args = parser.parse_args()
 
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir) 
 
-    move_LR_files(args.input_dir,args.out_dir,args.data_path)
+    move_LR_files(args.input_dir,args.out_dir,args.data_path,args.basals)
 
     if args.HR:
-        move_HR_files(args.data_path,args.out_dir)
+        move_HR_files(args.out_dir,args.data_path)
     

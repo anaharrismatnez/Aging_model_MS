@@ -69,7 +69,7 @@ def paths(args,mode='training'):
     today = date.today()
     today = ('').join(str(today).split('-'))
 
-    split_path = args.d.split('/')
+    split_path = args.data_path.split('/')
 
     project = split_path[-2]
 
@@ -91,42 +91,55 @@ def paths(args,mode='training'):
     return models_path,root
 
 
-def move_LR_files(source,target,data_path):
+def move_LR_files(source,target,data_path,basals=False):
+    print('moving LR files')
     for file in os.listdir(source):
-            print(file)
             folder = file.split('.npy')[0]
-            info = json.load(open(os.path.join(data_path,folder,'info.json'),'r'))
-            shape = info['shape']
-            img = np.load(os.path.join(source,file))
-            img = np.moveaxis(img,0,2)
-            normalized = data_transformation_numpy(img,tuple(shape))
-            
-            new_name = file.replace('.npy','_V0.npy')
-            np.save(os.path.join(target,new_name),normalized)
+            if basals:
+                t,s,m = folder.split('_')
+                basal = f'1_{s}_{m}'
+                info = json.load(open(os.path.join(data_path,folder,'info.json'),'r'))
+                print(basal)
+                info = json.load(open(os.path.join(data_path,folder,'info.json'),'r'))
+                shape = info['shape']
+                img = np.load(os.path.join(source,file))
+                img = np.moveaxis(img,0,2)
+                normalized = data_transformation_numpy(img,tuple(shape))
+                np.save(os.path.join(target,f'{basal}_V0.npy'),normalized)
+
+            else:
+                info = json.load(open(os.path.join(data_path,folder,'info.json'),'r'))
+                print(file)
+                shape = info['shape']
+                img = np.load(os.path.join(source,file))
+                img = np.moveaxis(img,0,2)
+                normalized = data_transformation_numpy(img,tuple(shape))
+                
+                new_name = file.replace('.npy','_V0.npy')
+                np.save(os.path.join(target,new_name),normalized)
             
 
-def move_HR_files(source,target,basals=False):
-    for folder in os.listdir(source):
+def move_HR_files(source,data_path):
+    print('moving HR files')
+    for file in os.listdir(source):
+        folder = file.split('_V0.npy')[0]
         print(folder)
-        delta = json.load(open(os.path.join(source,folder,'info.json'),'r'))['delta']
-        if basals:
-            if delta == 0:
-                name = folder.split('1_')[-1]
-                img = np.load(os.path.join(source,folder,f'{name}.npy'))
-                normalized = img_normalization(img,range=(0,1))
-                np.save(os.path.join(target,f'1_{name}_V1.npy'),normalized)
+        n,s,m = folder.split('_')
+        name = s+'_'+m
+        delta = json.load(open(os.path.join(data_path,folder,'info.json'),'r'))['delta']
+        basal = np.load(os.path.join(data_path,folder,f'{name}.npy'))
 
+        if delta == 0:
+            img = basal
         else:
-            if delta != 0:
-                n,s,m = folder.split('_')
-                name = s+'_'+m
-                img = np.load(os.path.join(source,folder,f'r_{name}.npy'))
-                basal = np.load(os.path.join(source,folder,f'{name}.npy'))
-                mask = np.zeros_like(basal)
-                mask[basal != 0] = 1
-                img[mask == 0] = 0
-                normalized = img_normalization(img,range=(0,1))
-                np.save(os.path.join(target,f'{n}_{name}_V1.npy'),normalized)
+            img = np.load(os.path.join(data_path,folder,f'r_{name}.npy'))
+
+        mask = np.zeros_like(basal)
+        mask[basal != 0] = 1
+        img[mask == 0] = 0
+        normalized = img_normalization(img,range=(0,1))
+        np.save(os.path.join(source,f'{n}_{name}_V1.npy'),normalized)
+
 
 def get_lr(optimizer):
     for param_group in optimizer.param_groups:

@@ -23,13 +23,13 @@ from monai.utils import first,set_determinism
 
 def load_AE(args,device,image):
     config_AE = OmegaConf.load(args.AE_config)
-    checkpoint = torch.load(args.AE) 
+    checkpoint = torch.load(args.AE_model) 
     autoencoder = AutoencoderKL(**config_AE["stage1"]["params"]).to(device)
     autoencoder.load_state_dict(checkpoint['model'])
 
     scale_factor = get_scale_factor(autoencoder,image,device)
 
-    print('Autoencoder model loaded from:',args.AE)
+    print('Autoencoder model loaded from:',args.AE_model)
     print('Scale factor:',scale_factor)
 
     return autoencoder.to(device),scale_factor.to(device)
@@ -38,18 +38,14 @@ def load_AE(args,device,image):
 
 
 def main(args):
-
-    output_dir = Path(args.output_dir+'/frames/')
-    output_dir.mkdir(exist_ok=True, parents=True)
-
     output_dir_npy = Path(args.output_dir+'/LR')
     output_dir_npy.mkdir(exist_ok=True, parents=True)
 
     # GET DATASET
-    if args.d.endswith('.pkl'):
-        data = pickle.load(open(args.d,'rb'))
+    if args.data_path.endswith('.pkl'):
+        data = pickle.load(open(args.data_path,'rb'))
     else:
-        data = get_data(args.d)
+        data = get_data(args.data_path)
 
     test_data = test_dataset(data,rest_T)
     test_loader = DataLoader(test_data)

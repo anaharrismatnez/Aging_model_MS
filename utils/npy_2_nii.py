@@ -34,9 +34,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    fold = args.source.split('/')[-2]
+    path_source = args.source.split('/')
 
-    out_dir = args.source.replace(fold,f'{fold}_niftis')
+    if path_source[-1] == '':
+        path_source[-2] = f'{path_source[-2]}_niftis'
+        out_dir = ('/').join(path_source)
+    else:
+        out_dir = f'{args.source}_niftis'
+
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 

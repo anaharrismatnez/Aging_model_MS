@@ -87,14 +87,14 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
 
             # Discriminator total loss
             with torch.cuda.amp.autocast():
-                D_total_loss = ((D_real_loss + (args.vd_l2 * l2_reg_d)) + D_fake_loss) * 0.5
+                D_total_loss = ((D_real_loss + (args.vd * l2_reg_d)) + D_fake_loss) * 0.5
 
             D_scaler.scale(D_total_loss).backward()
             D_scaler.step(D_optimizer)
             D_scaler.update()
 
             run_D_total_loss += D_total_loss
-            d_l2 += args.vd_l2*l2_reg_d
+            d_l2 += args.vd*l2_reg_d
 
             D_real_fmaps_detached = [fmap.detach() for fmap in D_real_fmaps]
             D_fake_fmaps_detached = [fmap.detach() for fmap in D_fake_fmaps]
@@ -119,7 +119,7 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
                     l2_reg_g += torch.norm(param, p=2) ** 2
 
             with torch.cuda.amp.autocast():
-                G_loss = Loss_G_GAN + (Loss_G_l1 *args.l) + (args.mu_fm_loss * f_matching_loss) + (args.g * rmse_loss) + (args.vg_l2*l2_reg_g)
+                G_loss = Loss_G_GAN + (Loss_G_l1 *args.l) + (args.mu_fm_loss * f_matching_loss) + (args.g * rmse_loss) + (args.vg*l2_reg_g)
                 
 
             G_scaler.scale(G_loss).backward()
@@ -129,7 +129,7 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
             run_L1 += Loss_G_l1
             run_GAN += Loss_G_GAN
             run_G_total_loss += G_loss
-            g_l2 += l2_reg_g * args.vg_l2
+            g_l2 += l2_reg_g * args.vg
             l_fm += f_matching_loss * args.mu_fm_loss
             l_rmse += rmse_loss * args.g
 
@@ -174,9 +174,6 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
 
         if (ep+1) == 1 or epochs_check != 0:
             best_loss = run_G_total_loss/len(train_loader)
-            best_bmrse = l_rmse/len(train_loader)
-            best_psnr = psnr_ep
-
 
         
         if run_G_total_loss/len(train_loader) < best_loss:
@@ -188,6 +185,8 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
                 'l1_loss' : run_L1/len(train_loader),
                 'G_loss' : run_G_total_loss/len(train_loader),
                     }, f'{models_path}/best_model_generator')
+            if args.w:
+                wandb.save(f'{models_path}/best_model_generator')
 
             torch.save({
                 'epoch': ep+1,
@@ -221,6 +220,10 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
                 'D_real' : run_D_real/len(train_loader),
                 'D_total' : run_D_total_loss/len(train_loader),
                     }, f'{models_path}/{ep+1}_discriminator')
+
+        if (ep+1) == args.e and args.w == True:
+            wandb.save(f'{models_path}/{ep+1}_generator')
+
 
     print('Training completed')  
     

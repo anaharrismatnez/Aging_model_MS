@@ -25,13 +25,13 @@ from generative.networks.nets import AutoencoderKL
 
 def load_AE(args,device,image):
     config_AE = OmegaConf.load(args.AE_config)
-    checkpoint = torch.load(args.AE) 
+    checkpoint = torch.load(args.AE_model) 
     autoencoder = AutoencoderKL(**config_AE["stage1"]["params"]).to(device)
     autoencoder.load_state_dict(checkpoint['model'])
 
     scale_factor = get_scale_factor(autoencoder,image,device)
 
-    print('Autoencoder model loaded from:',args.AE)
+    print('Autoencoder model loaded from:',args.AE_model)
 
     return autoencoder.to(device),scale_factor.to(device)
 
@@ -58,10 +58,10 @@ def main(args,device):
     models_path = paths(args)
 
     # GET DATASET
-    if args.d.endswith('.pkl'):
-        data = pickle.load(open(args.d,'rb'))
+    if args.data_path.endswith('.pkl'):
+        data = pickle.load(open(args.data_path,'rb'))
     else:
-        data = get_data(args.d)
+        data = get_data(args.data_path)
 
     train_data = train_dataset(data,'ldm',transform=rest_T)
     train_loader = DataLoader(train_data,batch_size=args.B,num_workers=0,shuffle=True)
@@ -161,7 +161,9 @@ def main(args,device):
                     "optimizer": optimizer.state_dict(),
                     "best_loss": best_loss,
                 }
-                torch.save(checkpoint, f'{models_path}/best_model.pth') 
+                torch.save(checkpoint, f'{models_path}/best_model.pth')
+                if args.w:
+                    wandb.save(f'{models_path}/best_model.pth') 
                 print('Checkpoint saved!')
                 counter = 0
         else:
@@ -190,6 +192,8 @@ def main(args,device):
                 "best_loss": best_loss,
             }
     torch.save(checkpoint, f'{models_path}/final_model.pth')
+    if args.w:
+        wandb.save(f'{models_path}/final_model.pth') 
 
 
 
@@ -199,7 +203,7 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-ddata_path',required=True, type=str,help='Data path')
+    parser.add_argument('-data_path',required=True, type=str,help='Data path')
     parser.add_argument('-n',required=False, type=str,help='Experiment name')
     parser.add_argument('-B',default=1, type=int,  help='Batch size')
     parser.add_argument('-e',default=25, type=int, help='Number of epochs')
