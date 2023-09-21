@@ -13,6 +13,20 @@ main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, main_folder)
 from utils.utils_image import *
 import json
+import monai
+
+
+def threshold_at_one(x):
+    # threshold at 1
+    return x > 1
+
+transforms = monai.transforms.Compose([
+    monai.transforms.EnsureChannelFirst(channel_dim='no_channel'),
+    monai.transforms.CropForeground(select_fn=threshold_at_one, margin=0),
+    monai.transforms.Resize((128,128,128)),
+    monai.transforms.ScaleIntensity(minv=0.0, maxv=1.0),
+    monai.transforms.ToTensor()
+])
 
 
 def get_data(
@@ -45,9 +59,9 @@ def get_data(
 
 
 class dataset(Dataset):
-    def __init__(self,data,img_size=128,mode='training'):
+    def __init__(self,data,mode='training'):
         self.data = data
-        self.img_size = img_size
+        self.transform = transforms
         self.mode = mode
 
     def __len__(self):
@@ -59,9 +73,9 @@ class dataset(Dataset):
         if self.mode == 'training':
             patient_name = self.data[index]['basal'].split('/')[-2]
             gt = np.load(self.data[index]['fup'])
-            gt = data_transformation(gt,self.img_size)
+            gt = self.transform(gt)
             condition = np.load(self.data[index]['basal'])
-            condition = data_transformation(condition,self.img_size)
+            condition = self.transform(condition)
 
             delta = torch.tensor(float(self.data[index]['delta']))
 
@@ -70,11 +84,9 @@ class dataset(Dataset):
         else:
             patient_name = self.data[index]['basal'].split('/')[-2]  
             condition = np.load(self.data[index]['basal']) 
-            condition = data_transformation(condition,self.img_size)
+            condition = self.transform(condition)
             delta = torch.tensor(float(self.data[index]['delta']))
             return condition,patient_name,delta
-
-
 
 
 
