@@ -16,15 +16,15 @@ import json
 import monai
 
 
-def threshold_at_one(x):
-    # threshold at 1
-    return x > 1
+def threshold_at_zero(x):
+    # threshold at 0
+    return x > 0
 
 transforms = monai.transforms.Compose([
     monai.transforms.EnsureChannelFirst(channel_dim='no_channel'),
-    monai.transforms.CropForeground(select_fn=threshold_at_one, margin=0),
+    monai.transforms.CropForeground(select_fn=threshold_at_zero, margin=0),
     monai.transforms.Resize((128,128,128)),
-    monai.transforms.ScaleIntensity(minv=0.0, maxv=1.0),
+    monai.transforms.ScaleIntensity(minv=-1.0, maxv=1.0),
     monai.transforms.ToTensor()
 ])
 
