@@ -43,9 +43,7 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
             delta = delta.to(device)
 
             delta = delta.unsqueeze(1)
-            #basal = basal.unsqueeze(1)
             basal = basal.to(device).float()
-            #fup = fup.unsqueeze(1)
             fup = fup.to(device).float()
 
             mask = generate_mask(basal).cpu()
