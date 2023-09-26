@@ -8,7 +8,7 @@ main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, main_folder)
 
 import torch
-from model_pix2pix import *
+import model_pix2pix
 import argparse
 from time import process_time
 from utils.utils_image import *
@@ -20,8 +20,8 @@ def prediction():
     for i,data in enumerate(dataloader):
         
         basal,filename,delta = data
-        delta = delta.to(device)
-        basal = basal.unsqueeze(0).to(device).float()
+        delta = delta.unsqueeze(1).to(device)
+        basal = basal.to(device).float()
         fake = G(basal,delta)
 
         filename = str(filename).split("'")[1]
@@ -60,9 +60,9 @@ if __name__ == "__main__":
 
     data = get_data(args.data_path)
     test_dataset = dataset(data,mode='test') 
-    dataloader = DataLoader(test_dataset, shuffle=True)
+    dataloader = DataLoader(test_dataset, shuffle=False)
 
-    G = FiLMed_Generator(1,1,nf=64,aux_classes=1).to(device)
+    G = model_pix2pix.Generator(1,1,nf=64,aux_classes=1).to(device)
 
     G_checkpoint = torch.load(model_path+'/'+args.epoch+'_generator')
     G.load_state_dict(G_checkpoint['model_state_dict'])
