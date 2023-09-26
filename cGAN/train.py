@@ -9,7 +9,6 @@ main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, main_folder)
 
 from torch.utils.data import DataLoader
-from model_pix2pix import *
 import torch
 import wandb
 from utils.util import *
@@ -44,9 +43,9 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
             delta = delta.to(device)
 
             delta = delta.unsqueeze(1)
-            basal = basal.unsqueeze(1)
+            #basal = basal.unsqueeze(1)
             basal = basal.to(device).float()
-            fup = fup.unsqueeze(1)
+            #fup = fup.unsqueeze(1)
             fup = fup.to(device).float()
 
             mask = generate_mask(basal).cpu()
@@ -147,34 +146,35 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
         if args.w:
             wandb.log({
                 'epoch': ep +1,
-                'G_loss': (run_G_total_loss.item()/len(train_loader)), 
-                'G_L1': (run_L1.item()/len(train_loader)),
-                'GAN_loss': (run_GAN.item()/len(train_loader)), 
-                'D_real': (run_D_real.item()/len(train_loader)), 
-                'D_fake': (run_D_fake.item()/len(train_loader)), 
-                'D_total':(run_D_total_loss.item()/len(train_loader)), 
-                'D_l2' : (d_l2.item()/len(train_loader)),
-                'G_l2' : (g_l2.item()/len(train_loader)),
-                'L_fm' : (l_fm.item()/len(train_loader)),
-                'L_rmse' : (l_rmse.item()/len(train_loader)),
-                'PSNR':psnr_ep
-            }) 
+                'G_loss': round(run_G_total_loss.item()/len(train_loader),3), 
+                'G_L1': round(run_L1.item()/len(train_loader),3),
+                'GAN_loss': round(run_GAN.item()/len(train_loader),3), 
+                'D_real': round(run_D_real.item()/len(train_loader),3), 
+                'D_fake': round(run_D_fake.item()/len(train_loader),3), 
+                'D_total':round(run_D_total_loss.item()/len(train_loader),3), 
+                'D_l2' : round(d_l2.item()/len(train_loader),3),
+                'G_l2' : round(g_l2.item()/len(train_loader),3),
+                'L_fm' : round(l_fm.item()/len(train_loader),3),
+                'L_rmse' : round(l_rmse.item()/len(train_loader),3),
+                'PSNR':round(psnr_ep.item(),3)
+            })  
 
             #Report random image from training in wandb
-            img = fake[0].detach().squeeze().cpu().numpy()
-            figs=plt.figure(figsize=(6,6))
-            plt.axis("off")
-            plt.title(f'epoch: {(ep+1)}')
-            plt.imshow(img[83,:,:].T, cmap='gray', origin='lower')  # MOVEAXIS(0,2), 1st index is the axial in nibabel 
+            if (ep+1) % 10 == 0:
+                img = fake[0].detach().squeeze().cpu().numpy()
+                figs=plt.figure(figsize=(6,6))
+                plt.axis("off")
+                plt.title(f'epoch: {(ep+1)}')
+                plt.imshow(img[83,:,:].T, cmap='gray', origin='lower')  # MOVEAXIS(0,2), 1st index is the axial in nibabel 
 
-            plots = wandb.Image(figs)
-            plt.close(figs)
-            wandb.log({f"example: {filename[0]}, epoch {(ep+1)}": plots}) 
+                plots = wandb.Image(figs)
+                plt.close(figs)
+                wandb.log({f"example: {filename[0]}, epoch {(ep+1)}": plots}) 
         
 
         if (ep+1) == 1 or epochs_check != 0:
             best_loss = run_G_total_loss/len(train_loader)
-
+            best_rmse_loss = l_rmse/len(train_loader)
         
         if run_G_total_loss/len(train_loader) < best_loss:
             torch.save({
@@ -201,8 +201,33 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
 
             best_loss = run_G_total_loss/len(train_loader)
 
-        if (ep+1) % 10 == 0:
+        if l_rmse/len(train_loader) < best_rmse_loss:
             torch.save({
+                'epoch': ep+1,
+                'model_state_dict': G.state_dict(),
+                'optimizer_state_dict': G_optimizer.state_dict(),
+                'gan_loss': run_GAN/len(train_loader),
+                'l1_loss' : run_L1/len(train_loader),
+                'G_loss' : run_G_total_loss/len(train_loader),
+                    }, f'{models_path}/best_model_rmse_generator')
+            if args.w:
+                wandb.save(f'{models_path}/best_model_rmse_generator')
+
+            torch.save({
+                'epoch': ep+1,
+                'model_state_dict': D.state_dict(),
+                'optimizer_state_dict': D_optimizer.state_dict(),
+                'D_fake': run_D_fake/len(train_loader),
+                'D_real' : run_D_real/len(train_loader),
+                'D_total' : run_D_total_loss/len(train_loader),
+                    }, f'{models_path}/best_model_rmse_discriminator')
+
+            print('Checkpoint saved rmse!')
+
+            best_rmse_loss = l_rmse/len(train_loader)
+
+        if (ep+1) % 20 == 0:
+            """ torch.save({
                 'epoch': ep+1,
                 'model_state_dict': G.state_dict(),
                 'optimizer_state_dict': G_optimizer.state_dict(),
@@ -219,10 +244,12 @@ def train(args,train_data,epochs_check,G_optimizer,D_optimizer,device,G,D,models
                 'D_fake': run_D_fake/len(train_loader),
                 'D_real' : run_D_real/len(train_loader),
                 'D_total' : run_D_total_loss/len(train_loader),
-                    }, f'{models_path}/{ep+1}_discriminator')
+                    }, f'{models_path}/{ep+1}_discriminator') """
 
-        if (ep+1) == args.e and args.w == True:
             wandb.save(f'{models_path}/{ep+1}_generator')
+
+        """ if (ep+1) == args.e and args.w == True:
+            wandb.save(f'{models_path}/{ep+1}_generator') """
 
 
     print('Training completed')  
