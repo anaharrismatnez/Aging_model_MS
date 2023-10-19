@@ -22,21 +22,25 @@ Code for the Master Thesis: "Generation of synthetic longitudinal magnetic reson
 dataset/
     1_MRI_001/
         MRI_001.npy
+        MRI_001_mask.npy
         info.json
         ...
     2_MRI_001/
         MRI_001.npy
+        MRI_001_mask.npy
         r_MRI_001.npy
         info.json
         ...
     3_MRI_001/
         MRI_001.npy
+        MRI_001_mask.npy
         r_MRI_001.npy
         info.json
         ...
   ```
 
-- Where t_MRI_001 corresponds to each time point of patient 001, being t=1 the baseline scan. As the training will be per pairs it is necessary at t > 1 to specify the follow-up scan by writing "r_" before the patient's name, meaning registered image.
+- Where t_MRI_001 corresponds to each time point of patient 001, being t=1 the baseline scan. As the training will be per pairs it is necessary at t > 1 to specify the follow-up scan by writing "r_" before the patient's name, meaning registered image. 
+- The image "MRI_001.npy" should be skull-stripped and the "MRI_001_mask.npy" file corresponds to the binary mask.
 - Info.json has to contain at least the following entries about patient scan:
   - info['shape'] = [x,y,z]
   - info['delta'] = delta value between follow-up and baseline image
