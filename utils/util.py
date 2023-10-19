@@ -95,32 +95,30 @@ def paths(args,mode='training'):
 def move_LR_files(source,target,data_path,basals=False):
     print('moving LR files')
     for file in os.listdir(source):
-        if file.startswith('r_'):
-            new_name = file.replace('r_','')
-            folder = new_name.split('.nii.gz')[0]
-            new_name = new_name.replace('.nii.gz','_V0.npy')
-            info = json.load(open(os.path.join(data_path,folder,'info.json'),'r'))
-            
-            if basals:
-                if info['delta'] == 0:
-                    t,s,m = folder.split('_')
-                    basal = f'1_{s}_{m}'
-                    print(basal)
-                    
-                    img = read_nifti(os.path.join(source,file))
-                    #img = np.moveaxis(img,0,2)
-                    normalized = data_transformation_numpy(img,None,(0,1))
-
-                    np.save(os.path.join(target,new_name),normalized)
-                else:
-                    continue
-
-            else:
-                print(file)
+        folder = file.split('.nii.gz')[0]
+        new_name = new_name.replace('.nii.gz','_V0.npy')
+        info = json.load(open(os.path.join(data_path,folder,'info.json'),'r'))
+        
+        if basals:
+            if info['delta'] == 0:
+                t,s,m = folder.split('_')
+                basal = f'1_{s}_{m}'
+                print(basal)
+                
                 img = read_nifti(os.path.join(source,file))
                 #img = np.moveaxis(img,0,2)
                 normalized = data_transformation_numpy(img,None,(0,1))
+
                 np.save(os.path.join(target,new_name),normalized)
+            else:
+                continue
+
+        else:
+            print(file)
+            img = read_nifti(os.path.join(source,file))
+            #img = np.moveaxis(img,0,2)
+            normalized = data_transformation_numpy(img,None,(0,1))
+            np.save(os.path.join(target,new_name),normalized)
             
 
 def move_HR_files(source,data_path):
