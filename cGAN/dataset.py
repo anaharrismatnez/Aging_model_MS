@@ -28,7 +28,6 @@ transforms = monai.transforms.Compose([
     monai.transforms.ToTensor()
 ])
 
-
 def get_data(
     path: str,
 ):
@@ -36,13 +35,13 @@ def get_data(
     data_dicts = []
     for folder in os.listdir(path):
         name = folder.split('_')[1]+'_'+folder.split('_')[2]
-        delta = json.load(open(os.path.join(path,folder,'info.json'),'r'))['delta']
-        if folder.startswith('1_'):
+        info = json.load(open(os.path.join(path,folder,'info.json'),'r'))
+        if info['delta'] == 0:
             data_dicts.append(
                 {
                     "fup": f"{path}/{folder}/{name}.npy",
                     "basal": f"{path}/{folder}/{name}.npy",
-                    "delta": delta
+                    "delta": info['delta']
                 }
             )
         else:
@@ -50,7 +49,7 @@ def get_data(
                 {
                     "fup": f"{path}/{folder}/r_{name}.npy",
                     "basal": f"{path}/{folder}/{name}.npy",
-                    "delta": delta
+                    "delta": info['delta']
                 }
             )
 
@@ -63,7 +62,7 @@ class dataset(Dataset):
         self.data = data
         self.transform = transforms
         self.mode = mode
-
+        
     def __len__(self):
         return len(self.data)
 
@@ -71,6 +70,17 @@ class dataset(Dataset):
     def __getitem__(self, index):
 
         if self.mode == 'training':
+            patient_name = self.data[index]['basal'].split('/')[-2]
+            gt = np.load(self.data[index]['fup'])
+            gt = self.transform(gt)
+            condition = np.load(self.data[index]['basal'])
+            condition = self.transform(condition)
+
+            delta = torch.tensor(float(self.data[index]['delta']))
+
+            return gt,condition,patient_name,delta 
+
+        elif self.mode == 'validation':
             patient_name = self.data[index]['basal'].split('/')[-2]
             gt = np.load(self.data[index]['fup'])
             gt = self.transform(gt)
