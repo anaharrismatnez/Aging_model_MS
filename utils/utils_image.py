@@ -6,11 +6,11 @@ import torch
 import os
 import json
 
-def read_nifti(path,meta=None):
+def read_nifti(path,transforms=None):
     # In: volume file in nifti format
     # Out: Array image
     img = nib.load(path)
-    if meta:
+    if transforms:
         return img.get_fdata(), img.affine,img.header
     else:
         return img.get_fdata()
