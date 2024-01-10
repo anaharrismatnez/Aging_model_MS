@@ -20,13 +20,13 @@ def threshold_at_zero(x):
     # threshold at 0
     return x > 0
 
-transforms = monai.transforms.Compose([
+""" transforms = monai.transforms.Compose([
     monai.transforms.EnsureChannelFirst(channel_dim='no_channel'),
     monai.transforms.CropForeground(select_fn=threshold_at_zero, margin=0),
     monai.transforms.Resize((128,128,128)),
     monai.transforms.ScaleIntensity(minv=-1.0, maxv=1.0),
     monai.transforms.ToTensor()
-])
+]) """
 
 def get_data(
     path: str,
@@ -72,9 +72,11 @@ class dataset(Dataset):
         if self.mode == 'training':
             patient_name = self.data[index]['basal'].split('/')[-2]
             gt = np.load(self.data[index]['fup'])
-            gt = self.transform(gt)
+            gt = data_transformation(gt,128)
+            #gt = gt.transform(gt)
             condition = np.load(self.data[index]['basal'])
-            condition = self.transform(condition)
+            #condition = self.transform(condition)
+            condition = data_transformation(condition,128)
 
             delta = torch.tensor(float(self.data[index]['delta']))
 
@@ -83,9 +85,11 @@ class dataset(Dataset):
         elif self.mode == 'validation':
             patient_name = self.data[index]['basal'].split('/')[-2]
             gt = np.load(self.data[index]['fup'])
-            gt = self.transform(gt)
+            #gt = self.transform(gt)
+            gt = data_transformation(gt,128)
             condition = np.load(self.data[index]['basal'])
-            condition = self.transform(condition)
+            condition = data_transformation(condition,128)
+            #condition = self.transform(condition)
 
             delta = torch.tensor(float(self.data[index]['delta']))
 
@@ -94,7 +98,8 @@ class dataset(Dataset):
         else:
             patient_name = self.data[index]['basal'].split('/')[-2]  
             condition = np.load(self.data[index]['basal']) 
-            condition = self.transform(condition)
+            #condition = self.transform(condition)
+            condition = data_transformation(condition,128)
             delta = torch.tensor(float(self.data[index]['delta']))
             return condition,patient_name,delta
 

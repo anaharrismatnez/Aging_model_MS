@@ -4,20 +4,21 @@
 
 eval "$(conda shell.bash hook)"
 
-dataset=path_2_MS_dataset
-model=best_model_cGAN
+test_set=path_2_test_set
+cgan_model=path_2_cgan_model
+sr_model=path_2_SR_model
 
-conda activate base
+conda activate base # SPECIFY ENVIRONMENT OR ENVIRONMENT'S PATH
 
-python cGAN/inference.py -data_path $dataset -m $model -e best_model -o LR_MS
-python utils/prepare_SR_data.py -input_dir results/"$model"/training_cGAN/LR_MS -out_dir results/"$model"/training_SR/MS_data -data_path $dataset
+python cGAN/inference.py -data_path $test_set -model_path $cgan_model -m best_model_generator -o LR_MS
+python utils/prepare_SR_data.py -input_dir "$cgan_model"/LR_MS -out_dir $sr_model/LR_MS_data -data_path $test_set
 
 conda deactivate
-conda activate supermri
+conda activate supermri # SPECIFY ENVIRONMENT OR ENVIRONMENT'S PATH
 
-python clinical-super-mri/predict.py --input_dir results/"$model"/training_SR/MS_data/ --output_dir results/"$model"/training_SR/MS_SR --model_dir results/"$model"/training_SR/ 
+python clinical-super-mri/predict.py --input_dir "$sr_model"/LR_MS_data/ --output_dir "$sr_model"/SR_MS --model_dir $sr_model
 
-python utils/npy_2_nii.py -source results/$model/training_SR/MS_SR -data_path $dataset 
+python utils/npy_2_nii.py -source $sr_model/SR_MS -data_path $test_set 
 
 conda deactivate
 

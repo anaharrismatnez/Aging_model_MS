@@ -1,5 +1,4 @@
 
-
 import os
 import sys
 main_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -70,16 +69,12 @@ def paths(args,mode='training'):
     today = date.today()
     today = ('').join(str(today).split('-'))
 
-    split_path = args.data_path.split('/')
-
-    #project = split_path[-2]
-
     if args.n:
-        models_path = f'results/{args.n}/training_cGAN/checkpoints'
-        root = f'results/{args.n}/training_cGAN'
+        models_path = f'results/{args.n}/checkpoints'
+        root = f'results/{args.n}/'
     else:
-        models_path = f'results/run_{today}/training_cGAN/checkpoints'
-        root = f'results/run_{today}/training_cGAN'
+        models_path = f'results/run_{today}/checkpoints'
+        root = f'results/run_{today}/'
     
     
 
@@ -95,9 +90,10 @@ def paths(args,mode='training'):
 def move_LR_files(source,target,data_path,basals=False):
     print('moving LR files')
     for file in os.listdir(source):
-        folder = file.split('.nii.gz')[0]
-        new_name = new_name.replace('.nii.gz','_V0.npy')
+        folder = file.split('.npy')[0]
+        new_name = file.replace('.npy','_V0.npy')
         info = json.load(open(os.path.join(data_path,folder,'info.json'),'r'))
+        shape = info['shape']
         
         if basals:
             if info['delta'] == 0:
@@ -105,9 +101,10 @@ def move_LR_files(source,target,data_path,basals=False):
                 basal = f'1_{s}_{m}'
                 print(basal)
                 
-                img = read_nifti(os.path.join(source,file))
-                #img = np.moveaxis(img,0,2)
-                normalized = data_transformation_numpy(img,None,(0,1))
+                #img = read_nifti(os.path.join(source,file))
+                img = np.load(os.path.join(source,file))
+                img = np.moveaxis(img,0,2)
+                normalized = data_transformation_numpy(img,shape,(0,1))
 
                 np.save(os.path.join(target,new_name),normalized)
             else:
@@ -115,11 +112,12 @@ def move_LR_files(source,target,data_path,basals=False):
 
         else:
             print(file)
-            img = read_nifti(os.path.join(source,file))
-            #img = np.moveaxis(img,0,2)
-            normalized = data_transformation_numpy(img,None,(0,1))
+            #img = read_nifti(os.path.join(source,file))
+            img = np.load(os.path.join(source,file))
+            img = np.moveaxis(img,0,2)
+            normalized = data_transformation_numpy(img,shape,(0,1))
             np.save(os.path.join(target,new_name),normalized)
-            
+        
 
 def move_HR_files(source,data_path):
     print('moving HR files')

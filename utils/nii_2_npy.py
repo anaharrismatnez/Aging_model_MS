@@ -7,7 +7,7 @@ import numpy as np
 from utils.utils_image import *
 import shutil
 import argparse
-
+import json
 
 def nii2npy(args):
 
@@ -15,15 +15,19 @@ def nii2npy(args):
         os.makedirs(args.output_dir)
 
     for folder in os.listdir(args.source):
-        os.makedirs(os.path.join(args.output_dir,folder))
+        if not os.path.exists(os.path.join(args.output_dir,folder)):
+            os.makedirs(os.path.join(args.output_dir,folder))
+
+        name = folder.split('_')[-2]+'_'+folder.split('_')[-1]
+        #name = folder
 
         for filename in os.listdir(os.path.join(args.source,folder)):
-            if filename.endswith('.nii.gz'):
-                new_name = filename.split('.nii.gz')[0]+'.npy'
+            new_name = filename.split('.nii.gz')[0]+'.npy'
+            if name in filename:
                 if not 'r_' in filename:
                     img,affine,header = read_nifti(os.path.join(args.source,folder,filename),meta=True) # Automatically saves affine and header from basal image.
                     np.save(os.path.join(args.output_dir,folder,'affine.npy'),affine)
-                    np.save(os.path.join(args.output_dir,folder,'header.npy'),header)
+                    #np.save(os.path.join(args.output_dir,folder,'header.npy'),header)
 
                 else:
                     img = read_nifti(os.path.join(args.source,folder,filename))
@@ -31,10 +35,10 @@ def nii2npy(args):
                 np.save(os.path.join(args.output_dir,folder,new_name),img)
                 print(new_name,':',img.shape)
 
-        
-        shutil.copy(os.path.join(args.source,folder,'info.json'), os.path.join(args.output_dir,folder))
-
-
+        info = json.load(open(os.path.join(args.source,folder,'info.json'),'r'))
+        info['shape'] = img.shape
+        with open(os.path.join(args.source,folder,'info.json'),'w') as h:
+            json.dump(info,h)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -50,7 +50,6 @@ def generate_mask(image,l=-1):
     mask = mask.type(torch.float32)
     return mask
 
-
 def check_nifti_data(folder_path):
     delta = json.load(open(os.path.join(folder_path,'info.json'),'r'))
     shape = delta['shape']

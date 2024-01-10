@@ -73,25 +73,24 @@ def get_data(
         name = folder.split('_')[1]+'_'+folder.split('_')[2]
         delta = json.load(open(os.path.join(path,folder,'info.json'),'r'))['delta']
         shape = json.load(open(os.path.join(path,folder,'info.json'),'r'))['shape']
-        if delta != 0:
-            if folder.startswith('1_'):
-                data_dicts.append(
-                    {
-                        "fup": f"{path}/{folder}/{name}.npy",
-                        "basal": f"{path}/{folder}/{name}.npy",
-                        "delta": delta,
-                        "shape" : shape
-                    }
-                )
-            else:
-                data_dicts.append(
-                    {
-                        "fup": f"{path}/{folder}/r_{name}.npy",
-                        "basal": f"{path}/{folder}/{name}.npy",
-                        "delta": delta,
-                        "shape" : shape
-                    }
-                )
+        if delta == 0:
+            data_dicts.append(
+                {
+                    "fup": f"{path}/{folder}/{name}.npy",
+                    "basal": f"{path}/{folder}/{name}.npy",
+                    "delta": delta,
+                    "shape" : shape
+                }
+            )
+        else:
+            data_dicts.append(
+                {
+                    "fup": f"{path}/{folder}/r_{name}.npy",
+                    "basal": f"{path}/{folder}/{name}.npy",
+                    "delta": delta,
+                    "shape" : shape
+                }
+            )
 
         
     print(f"Found {len(data_dicts)} subjects.")

@@ -14,7 +14,8 @@ import torch
 from utils.utils_image import *
 import argparse
 from time import process_time
-import model_pix2pix
+from model_pix2pix import Generator,Discriminator
+
 import pickle
 from torch.utils.data import DataLoader
 
@@ -45,10 +46,9 @@ def main(args,epochs_check):
         val_loader = None
 
         
-    G = model_pix2pix.Generator().to(device)
-    D = model_pix2pix.Discriminator(p=args.pad,patch_size=args.p).to(device)
+    G = Generator().to(device)
+    D = Discriminator(p=args.pad,patch_size=args.p).to(device)
 
-    
     G_optimizer = torch.optim.Adam(G.parameters(),lr=args.lr,betas=(0.5,0.999))
     D_optimizer = torch.optim.Adam(D.parameters(),lr=args.lr,betas=(0.5,0.999))
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     parser.add_argument('-s',required=False,default=None, type=bool, help='If smooth_label is required')
     parser.add_argument('-pad',required=False,default=1, type=int, help='Padding at Discriminator')
     parser.add_argument('-g',default=200, type=float, help='Gamma, rmse loss')
-    parser.add_argument('-mu_fm_loss',default=50, type=float, help='Mu,feature matching loss')
+    parser.add_argument('-mu_fm_loss',default=20, type=float, help='Mu,feature matching loss')
     parser.add_argument('-lr',default=2e-4, type=float, help='learning_rate')
     parser.add_argument('-vd',default=0.001, type=float, help='upsilon discriminator, L2 regularization')
     parser.add_argument('-vg',default=0.001, type=float, help='upsilon generator, L2 regularization')

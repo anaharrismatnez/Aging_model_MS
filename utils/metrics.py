@@ -20,21 +20,21 @@ def get_data(
 ):
     data_dicts = []
     for folder in os.listdir(syn_path):
-        if folder == 'bad_results' or folder =='report':
+        if folder == 'bad_results' or folder =='report' or folder.endswith('.txt'):
             continue
         else:
             if not folder.endswith('.csv'):
-                site = folder.split('_')[1]
                 name = folder.split('_')[1]+'_'+folder.split('_')[2]
+                #name=folder
                 fold_name = folder.split('.npy')[0]
-                delta = json.load(open(os.path.join(data_path,site,fold_name,'info.json'),'r'))['delta']
+                delta = json.load(open(os.path.join(data_path,fold_name,'info.json'),'r'))['delta']
                 if delta == args.d:
-                    if folder.startswith('1_'):
+                    if delta == 0:
                         data_dicts.append(
                             {
                                 "fake": f"{syn_path}/{folder}",
-                                "basal": f"{data_path}/{site}/{fold_name}/{name}",
-                                "gt" : f"{data_path}/{site}/{fold_name}/{name}",
+                                "basal": f"{data_path}/{fold_name}/{name}",
+                                "gt" : f"{data_path}/{fold_name}/{name}",
                                 "delta": delta
                             }
                         )
@@ -42,8 +42,8 @@ def get_data(
                         data_dicts.append(
                             {
                                 "fake": f"{syn_path}/{folder}",
-                                "basal": f"{data_path}/{site}/{fold_name}/{name}",
-                                "gt" : f"{data_path}/{site}/{fold_name}/r_{name}",
+                                "basal": f"{data_path}/{fold_name}/{name}",
+                                "gt" : f"{data_path}/{fold_name}/r_{name}",
                                 "delta": delta
                                 
                             }
@@ -75,7 +75,7 @@ def main(args):
         print(folder)
 
         fake = np.load(dataset[i]['fake'])
-        gt = np.load(dataset[i]['gt'])
+        gt = np.load(dataset[i]['gt'],allow_pickle=True)
 
         if fake.shape == (128,128,128):
             fake = np.moveaxis(fake,0,2)
@@ -104,24 +104,16 @@ def main(args):
         luminosity,contrast,structural,ssim_map,structural_map = compute_ssim(fake,gt,mask,map=True)
         ssim = luminosity * contrast * structural
 
+        if ssim > 1:
+            ssim = 1
+
         dssim_map = (1 - ssim_map)
         dssim_map[mask == 0] = 0
 
         d_structural_map = (1 - structural_map)
         d_structural_map[mask == 0] = 0
         
-    
-        if ssim < 0.5:
 
-            df_bad.at[i,'Subject'] = f'{folder}'
-            df_bad.at[i,'MAE'] = mae(fake,gt).numpy()
-            df_bad.at[i,'PSNR'] = psnr(fake,gt).numpy()
-            df_bad.at[i,'SSIM'] = ssim
-            df_bad.at[i,'DSSIM'] = (1-ssim)
-            df_bad.at[i,'structural_score'] = structural
-            df_bad.at[i,'D_structural_score'] = (1-structural)
-            df_bad.at[i,'luminosity_score'] = luminosity
-            df_bad.at[i,'contrast_score'] = contrast
 
 
         df.at[i,'Subject'] = f'{folder}'
@@ -134,15 +126,6 @@ def main(args):
         df.at[i,'luminosity_score'] = luminosity
         df.at[i,'contrast_score'] = contrast
 
-
-    dssim_map = maps(dssim_map,method='dssim')
-    dssim_map.savefig(f'{args.syn_path}/report/folder_DSSIM_map_{args.d}year.png')
-
-    ssim_map = maps(ssim_map,method='ssim')
-    ssim_map.savefig(f'{args.syn_path}/report/folder_SSIM_map_{args.d}year.png')
-
-    d_structural_map = maps(d_structural_map,method='d_structural')
-    d_structural_map.savefig(f'{args.syn_path}/report/folder_d_structural_map_{args.d}year.png')
     
     
     means,devs = ['mean'],['dev']
@@ -158,8 +141,6 @@ def main(args):
     print('Done')
 
     df.to_csv(f'{args.syn_path}/report/metrics_report_{args.d}year.csv',index=False)
-
-    df_bad.to_csv(f'{args.syn_path}/bad_results_report.csv',index=False)
 
 
 if __name__ == "__main__":

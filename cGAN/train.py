@@ -22,7 +22,7 @@ from torchmetrics import PeakSignalNoiseRatio
 
 def train(args,train_loader,val_loader,epochs_check,G_optimizer,D_optimizer,device,G,D,models_path):
 
-    #early_stopping = EarlyStopping(min_delta=np.inf)
+    early_stopping = EarlyStopping(min_delta=np.inf)
 
     
 
@@ -48,8 +48,8 @@ def train(args,train_loader,val_loader,epochs_check,G_optimizer,D_optimizer,devi
             basal.requires_grad = True
             fup.requires_grad = True
             delta = delta.unsqueeze(1)
-            basal = basal.to(device).float()
-            fup = fup.to(device).float()
+            basal = basal.unsqueeze(1).to(device).float()
+            fup = fup.unsqueeze(1).to(device).float()
 
             mask = generate_mask(basal).cpu()
 
@@ -128,9 +128,6 @@ def train(args,train_loader,val_loader,epochs_check,G_optimizer,D_optimizer,devi
                 G_scaler.step(G_optimizer)
                 G_scaler.update()
 
-            """ gradients = torch.autograd.grad(outputs=fake, inputs=basal, grad_outputs=torch.ones(fake.size()).to(device), retain_graph=True)[0]
-            gradients = gradients.detach()   """
-
 
             run_L1 += Loss_G_l1
             run_GAN += Loss_G_GAN
@@ -148,17 +145,15 @@ def train(args,train_loader,val_loader,epochs_check,G_optimizer,D_optimizer,devi
         psnr_ep = (torch.sum(psnr_score))/len(train_loader)
         print('G_loss:', round(run_G_total_loss.item()/len(train_loader),3), 'L_rmse',round(l_rmse.item()/len(train_loader),3),'PSNR:', round(psnr_ep.item(),3))
 
-        #if val_loader:
-            ## AÑADIR VALIDATION
-            #if (ep+1) % 5 == 0:
+
         for i,data in tqdm(enumerate(val_loader),total=len(val_loader)):
             
             fup,basal,filename,delta = data
             delta = delta.to(device)
 
             delta = delta.unsqueeze(1)
-            basal = basal.to(device).float()
-            fup = fup.to(device).float()
+            basal = basal.unsqueeze(1).to(device).float()
+            fup = fup.unsqueeze(1).to(device).float()
 
             mask = generate_mask(basal).cpu()
 
@@ -242,14 +237,12 @@ def train(args,train_loader,val_loader,epochs_check,G_optimizer,D_optimizer,devi
 
             #Report random image from training in wandb
             if (ep+1) % 5 == 0:
-                #gradients = gradients[0].squeeze().cpu().numpy()
-                #gradients = img_normalization(gradients)
+
                 img = fake[0].detach().squeeze().cpu().numpy()
-                #figs = plot_img(img,None)
                 figs=plt.figure(figsize=(6,6))
                 plt.axis("off")
                 plt.title(f'epoch: {(ep+1)}')
-                plt.imshow(img[:,:,83].T, cmap='gray', origin='lower')  # MOVEAXIS(0,2), 1st index is the axial in nibabel 
+                plt.imshow(img[83,:,:].T, cmap='gray', origin='lower')  # MOVEAXIS(0,2), 1st index is the axial in nibabel 
 
 
                 plots = wandb.Image(figs)
@@ -259,43 +252,15 @@ def train(args,train_loader,val_loader,epochs_check,G_optimizer,D_optimizer,devi
 
         if (ep+1) == 1 or epochs_check != 0:
             best_loss = G_total_val_loss/len(val_loader)
-            #best_rmse_loss = l_rmse/len(train_loader)
 
         else:
 
-            """ if l_rmse/len(train_loader) < best_rmse_loss:
-                torch.save({
-                    'epoch': ep+1,
-                    'model_state_dict': G.state_dict(),
-                    'optimizer_state_dict': G_optimizer.state_dict(),
-                    'gan_loss': run_GAN/len(train_loader),
-                    'l1_loss' : run_L1/len(train_loader),
-                    'G_loss' : run_G_total_loss/len(train_loader),
-                        }, f'{models_path}/best_model_rmse_generator')
-                if args.w:
-                    wandb.save(f'{models_path}/best_model_rmse_generator')
-
-                torch.save({
-                    'epoch': ep+1,
-                    'model_state_dict': D.state_dict(),
-                    'optimizer_state_dict': D_optimizer.state_dict(),
-                    'D_fake': run_D_fake/len(train_loader),
-                    'D_real' : run_D_real/len(train_loader),
-                    'D_total' : run_D_total_loss/len(train_loader),
-                        }, f'{models_path}/best_model_rmse_discriminator')
-
-                print('Checkpoint saved rmse!')
-
-                best_rmse_loss = l_rmse/len(train_loader) """
             
             if G_total_val_loss/len(val_loader) < best_loss:
                 torch.save({
                     'epoch': ep+1,
                     'model_state_dict': G.state_dict(),
                     'optimizer_state_dict': G_optimizer.state_dict(),
-                    #'gan_loss': run_GAN/len(train_loader),
-                    #'l1_loss' : run_L1/len(train_loader),
-                    #'G_val_loss' : G_total_val_loss/len(val_loader),
                         }, f'{models_path}/best_model_generator')
                 if args.w:
                     wandb.save(f'{models_path}/best_model_generator')
@@ -304,21 +269,19 @@ def train(args,train_loader,val_loader,epochs_check,G_optimizer,D_optimizer,devi
                     'epoch': ep+1,
                     'model_state_dict': D.state_dict(),
                     'optimizer_state_dict': D_optimizer.state_dict(),
-                    #'D_fake': run_D_fake/len(train_loader),
-                    #'D_real' : run_D_real/len(train_loader),
-                    #'D_total' : run_D_total_loss/len(train_loader),
+                
                         }, f'{models_path}/best_model_discriminator')
 
                 print('Checkpoint saved!')
 
                 best_loss = G_total_val_loss/len(val_loader)
-                """ early_stopping = EarlyStopping(min_delta=best_loss)
+                early_stopping = EarlyStopping(min_delta=best_loss)
 
             else:
                 early_stopping(G_total_val_loss/len(val_loader))
                 if early_stopping.early_stop:
                     print(f'Model does not improve at epoch:{ep+1}')
-                    break """
+                    break 
 
         if (ep+1) == args.e:
             torch.save({

@@ -5,9 +5,10 @@
 # Discriminator: patchGAN https://sahiltinky94.medium.com/understanding-patchgan-9f3c8380c207
 # FiLM layer: https://ivadomed.org/_modules/ivadomed/models.html#FiLMedUnet
 
+
 import torch
 
-def convolution_block(in_channels, nf,kernel_size=4,stride=2,padding=1,first_layer = False, last_layer=False):
+def convolution_block(in_channels, nf,kernel_size=4,stride=2,padding=1,first_layer = False, last_layer = False):
     if first_layer:
         return torch.nn.Sequential(torch.nn.Conv3d(in_channels,nf,kernel_size,stride,padding), torch.nn.LeakyReLU(0.2,True))
     elif last_layer:
@@ -16,63 +17,7 @@ def convolution_block(in_channels, nf,kernel_size=4,stride=2,padding=1,first_lay
         return torch.nn.Sequential(torch.nn.Conv3d(in_channels,nf,kernel_size,stride,padding), torch.nn.BatchNorm3d(nf), torch.nn.LeakyReLU(0.2,True))
 
 
-class AttentionGate(torch.nn.Module):
-    """
-    Additive Attention Gate
-    reference: https://arxiv.org/abs/1804.03999
-    """
 
-    def __init__(self, in_channels: int):
-        super(AttentionGate, self).__init__()
-
-        self.gating_conv =torch.nn.Conv3d(
-            in_channels=in_channels, out_channels=in_channels, kernel_size=1
-        )
-        self.gating_norm = torch.nn.InstanceNorm3d(in_channels)
-
-        self.input_conv =torch.nn.Conv3d(
-            in_channels=in_channels, out_channels=in_channels, kernel_size=1
-        )
-        self.input_norm = torch.nn.InstanceNorm3d(in_channels)
-
-        self.relu = torch.nn.ReLU()
-        self.conv =torch.nn.Conv3d(in_channels=in_channels, out_channels=1, kernel_size=1)
-        self.norm = torch.nn.InstanceNorm3d(1)
-        self.sigmoid = torch.nn.Sigmoid()
-
-    def forward(self, inputs: torch.Tensor, shortcut: torch.Tensor):
-        g = self.gating_conv(shortcut)
-        g = self.gating_norm(g)
-
-        x = self.input_conv(inputs)
-        x = self.input_norm(x)
-
-        alpha = torch.add(g, x)
-        alpha = self.relu(alpha)
-        alpha = self.conv(alpha)
-        alpha = self.norm(alpha)
-        attention_mask = self.sigmoid(alpha)
-        shortcut = torch.mul(attention_mask, shortcut)
-
-        return shortcut
-
-
-class FiLM_layer(torch.nn.Module):
-
-    def __init__(self,out_nf):
-        super(FiLM_layer, self).__init__()
-
-        self.linear_layer = torch.nn.Linear(1,2)
-        self.out_nf = out_nf
-
-    def forward(self,delta,X):
-        gamma_beta = self.film_layer(delta)
-        gamma, beta = torch.chunk(gamma_beta, chunks=2, dim=1)
-        gamma = gamma.view(-1, self.out_nf, 1, 1, 1)  # Reshape to match feature map dimensions
-        beta = beta.view(-1, self.out_nf, 1, 1, 1)
-        outputs = gamma * X + beta
-
-        return outputs
 
 class Generator(torch.nn.Module):
     def __init__(self,in_c=1,out_c=1,nf=64,aux_classes=1): 
@@ -83,25 +28,27 @@ class Generator(torch.nn.Module):
         out_c: number of channels in output image
         nf: number of filters in the last conv layer
         """
-        self.aux_layer = torch.nn.Linear(aux_classes,aux_classes) 
-        self.model = SkipConnection_block(nf*8,nf*8,in_channels=None,previous_block=None,outermost=False,innermost=True)
-        self.model = SkipConnection_block(nf*8,nf*8,in_channels=None,previous_block=self.model,outermost=False,innermost=False) 
-        self.model = SkipConnection_block(nf*8,nf*8,in_channels=None,previous_block=self.model,outermost=False,innermost=False) 
-        self.model = SkipConnection_block(nf*4,nf*8,in_channels=None,previous_block=self.model,outermost=False,innermost=False)
-        self.model = SkipConnection_block(nf*2,nf*4,in_channels=None,previous_block=self.model,outermost=False,innermost=False) 
-        self.model = SkipConnection_block(nf,nf*2,in_channels=None,previous_block=self.model,outermost=False,innermost=False)
-        self.model = SkipConnection_block(out_c,nf,in_channels=in_c+aux_classes,previous_block=self.model,outermost=True,innermost=False)
+        self.aux_layer = torch.nn.Linear(aux_classes,aux_classes) # MAPS THE AUX INPUT TO THE IMAGE  !!!!!!!!!!!!!!!!!!!!! DESCOMENTAR
+        self.model = SkipConnection_block(nf*8,nf*8,in_channels=None,previous_block=None,outermost=False,innermost=True,dropout=False)
+        self.model = SkipConnection_block(nf*8,nf*8,in_channels=None,previous_block=self.model,outermost=False,innermost=False,dropout=True) 
+        self.model = SkipConnection_block(nf*8,nf*8,in_channels=None,previous_block=self.model,outermost=False,innermost=False,dropout=True) 
+        self.model = SkipConnection_block(nf*4,nf*8,in_channels=None,previous_block=self.model,outermost=False,innermost=False,dropout=False)
+        self.model = SkipConnection_block(nf*2,nf*4,in_channels=None,previous_block=self.model,outermost=False,innermost=False,dropout=False) 
+        self.model = SkipConnection_block(nf,nf*2,in_channels=None,previous_block=self.model,outermost=False,innermost=False,dropout=False)
+        self.model = SkipConnection_block(out_c,nf,in_channels=in_c+aux_classes,previous_block=self.model,outermost=True,innermost=False,dropout=False)
 
-    def forward(self,X,aux): 
+        
+    
+    def forward(self,X, aux): 
         aux = self.aux_layer(aux).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1) 
         aux = aux.repeat(1, 1, X.shape[2], X.shape[3], X.shape[4])
-        X = torch.cat([X,aux], dim=1)                                                                        
+        X = torch.cat([X,aux], dim=1)
         X = self.model(X)
         return X
 
 
 class SkipConnection_block(torch.nn.Module):
-    def __init__(self,out_nf,inn_nf,in_channels,previous_block=False,outermost=False,innermost=False):
+    def __init__(self,out_nf,inn_nf,in_channels,previous_block=False,outermost=False,innermost=False,dropout=False):
         """
         out_nf: outter number of filters
         inn_nf: inner number of filters
@@ -117,44 +64,44 @@ class SkipConnection_block(torch.nn.Module):
         upnorm =  torch.nn.BatchNorm3d(out_nf)
         upconv = torch.nn.ConvTranspose3d(inn_nf*2,out_nf,kernel_size=4,stride=2,padding=1)
         self.outermost = outermost
+        
 
         if outermost:
             upsampling = [uprelu,upconv,torch.nn.Tanh()]
-            downsampling = [downconv]
+            model = torch.nn.Sequential(downconv,previous_block,*upsampling)
 
-            model = torch.nn.Sequential(*downsampling,previous_block,*upsampling)
 
         elif innermost:
             upconv = torch.nn.ConvTranspose3d(inn_nf,out_nf,kernel_size=4,stride=2,padding=1)
             downsampling = [downrelu,downconv]
-
             upsampling = [uprelu,upconv,upnorm]
 
             model =  torch.nn.Sequential(*downsampling,*upsampling)
 
         else:
+            upsampling = [uprelu,upconv,upnorm]
             downsampling = [downrelu,downconv,downnorm]
-
-            upsampling = [uprelu,upconv,upnorm,torch.nn.Dropout(0.5)]
-
-            model = torch.nn.Sequential(*downsampling,previous_block,*upsampling)
-
+            if dropout:
+                model =  torch.nn.Sequential(*downsampling,previous_block, *upsampling,torch.nn.Dropout(0.5))
+            else:
+                model =  torch.nn.Sequential(*downsampling,previous_block, *upsampling)
 
         self.model = model
 
-
-    def forward(self,X): 
+    def forward(self,X,gamma=None,beta=None): 
         if self.outermost:
             X = self.model(X)
             return X
         else:
-            outputs = self.model(X) 
-            outputs = torch.cat([outputs,X],1)
-            return outputs
+            X = torch.cat([X,self.model(X)],1)
+            if gamma is not None and beta is not None:
+                gamma, beta = gamma.unsqueeze(2).unsqueeze(3), beta.unsqueeze(2).unsqueeze(3)
+                X = (1 + gamma) * X + beta
+            return X
 
 
 class Discriminator(torch.nn.Module):
-    def __init__(self,p,patch_size,in_c=2,nf=64): 
+    def __init__(self,p,in_c=2, nf=64,patch_size=70): 
         super(Discriminator,self).__init__()
         """ 
         in_c: number of channels in input images
@@ -191,7 +138,3 @@ class Discriminator(torch.nn.Module):
             intermediate_fmaps.append(X)
         X = self.model[self.N_layers-1](X)
         return [X, intermediate_fmaps]
-
-
-G = Generator(1,1,64,1)
-print(G)
